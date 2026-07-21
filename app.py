@@ -1,80 +1,53 @@
-import streamlit as st
-from ultralytics import YOLO
-from PIL import Image
-import numpy as np
-import io
+if st.button("🔍 Detect"):
+    with st.spinner("Analyzing image... Please wait"):
 
-# تحميل الموديل
-model = YOLO("best.pt")
+        # تحويل الصورة إلى RGB ثم numpy
+        image_rgb = image.convert("RGB")
+        image_np = np.array(image_rgb)
 
-# إعداد الصفحة
-st.set_page_config(
-    page_title="Ovarian Cyst Detection",
-    page_icon="🩺",
-    layout="centered"
-)
+        # تقليل مستوى الثقة عشان ما يفوت اكتشافات
+        results = model(image_np, conf=0.10)
 
-# عرض صورة المبيض في المنتصف
-col1, col2, col3 = st.columns([1,2,1])
-with col2:
-    st.image("ovary.jpg", use_container_width=True)
+        boxes = results[0].boxes
 
-st.title("🩺 Ovarian Cyst Detection Application")
-st.markdown("Upload an ultrasound image to detect ovarian cysts using Artificial Intelligence.")
+        if boxes is not None and len(boxes) > 0:
 
-st.divider()
+            num_detections = len(boxes)
 
-uploaded_file = st.file_uploader("📤 Upload an ultrasound image", type=["jpg", "png", "jpeg"])
+            st.success(f"✅ Detection completed! {num_detections} cyst(s) detected.")
+            st.subheader("📊 Detection Details")
 
-if uploaded_file is not None:
-    image = Image.open(uploaded_file)
-    st.image(image, caption="🖼 Uploaded Image", use_container_width=True)
+            for i, box in enumerate(boxes):
+                class_id = int(box.cls[0])
+                confidence = float(box.conf[0])
+                class_name = model.names[class_id]
 
-    if st.button("🔍 Detect"):
-        with st.spinner("Analyzing image... Please wait"):
-            results = model(image)
+                st.markdown(f"""
+                **Detection {i+1}**
+                - Class: `{class_name}`
+                - Confidence: `{confidence:.2f}`
+                """)
 
-            boxes = results[0].boxes
+                st.progress(confidence)
 
-            if boxes is not None and len(boxes) > 0:
+            # رسم النتائج
+            result_image = results[0].plot()
+            result_image = result_image[..., ::-1]
 
-                num_detections = len(boxes)
+            st.image(result_image, caption="📌 Detection Result", use_container_width=True)
 
-                st.success(f"✅ Detection completed! {num_detections} cyst(s) detected.")
+            # زر تحميل
+            img_pil = Image.fromarray(result_image)
+            buf = io.BytesIO()
+            img_pil.save(buf, format="PNG")
+            byte_im = buf.getvalue()
 
-                st.subheader("📊 Detection Details")
+            st.download_button(
+                label="⬇ Download Result Image",
+                data=byte_im,
+                file_name="detection_result.png",
+                mime="image/png"
+            )
 
-                for i, box in enumerate(boxes):
-                    class_id = int(box.cls[0])
-                    confidence = float(box.conf[0])
-                    class_name = model.names[class_id]
-
-                    st.markdown(f"""
-                    **Detection {i+1}**
-                    - Class: `{class_name}`
-                    - Confidence: `{confidence:.2f}`
-                    """)
-
-                    st.progress(confidence)
-
-                # رسم النتائج على الصورة
-                result_image = results[0].plot()
-                result_image = result_image[..., ::-1]  # BGR → RGB
-
-                st.image(result_image, caption="📌 Detection Result", use_container_width=True)
-
-                # زر تحميل الصورة
-                img_pil = Image.fromarray(result_image)
-                buf = io.BytesIO()
-                img_pil.save(buf, format="PNG")
-                byte_im = buf.getvalue()
-
-                st.download_button(
-                    label="⬇ Download Result Image",
-                    data=byte_im,
-                    file_name="detection_result.png",
-                    mime="image/png"
-                )
-
-            else:
-                st.warning("⚠ No cyst detected in the image.")
+        else:
+            st.warning("⚠ No cyst detected in the image.")
