@@ -4,7 +4,7 @@ from PIL import Image
 import numpy as np
 
 # ????? ???????
-model = YOLO("C:/Users/abrar/Downloads/APP/best.pt")
+model = YOLO("best.pt")
 st.title("Ovarian Cyst Detection Application")
 
 uploaded_file = st.file_uploader("Upload an ultrasound image", type=["jpg", "png"])
