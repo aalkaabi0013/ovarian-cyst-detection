@@ -40,7 +40,7 @@ if uploaded_file is not None:
             image_np = np.array(image_rgb)
 
             # تشغيل الموديل
-            results = model(image_np, conf=0.10)
+           results = model(image, conf=0.05)
 
             boxes = results[0].boxes
 
