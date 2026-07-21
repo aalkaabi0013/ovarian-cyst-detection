@@ -17,7 +17,7 @@ st.set_page_config(
 # عرض صورة المبيض في المنتصف
 col1, col2, col3 = st.columns([1,2,1])
 with col2:
-    st.image("ovary.png", use_container_width=True)
+    st.image("ovary.jpg", use_container_width=True)
 
 st.title("🩺 Ovarian Cyst Detection Application")
 st.markdown("Upload an ultrasound image to detect ovarian cysts using Artificial Intelligence.")
