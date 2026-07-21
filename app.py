@@ -40,7 +40,7 @@ if uploaded_file is not None:
             image_np = np.array(image_rgb)
 
             # تشغيل الموديل
-           results = model(image, conf=0.05)
+            results = model(image_np, conf=0.10)
 
             boxes = results[0].boxes
 
@@ -82,6 +82,3 @@ if uploaded_file is not None:
                     file_name="detection_result.png",
                     mime="image/png"
                 )
-
-            else:
-                st.warning("⚠ No cyst detected in the image.")
